@@ -13,6 +13,11 @@ For commercial licensing, please contact: hsliup@163.com
 商业许可咨询，请联系：hsliup@163.com
 """
 
+# 🔧 修复：必须在任何其他导入之前应用 nest_asyncio
+# 解决 FastAPI 异步上下文中调用同步数据源代码时的 "event loop already running" 错误
+import nest_asyncio
+nest_asyncio.apply()
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
