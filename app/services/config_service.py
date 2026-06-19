@@ -2708,6 +2708,14 @@ class ConfigService:
                         "output_price_per_1k": 0.001,
                         "context_length": 128000,
                         "currency": "CNY"
+                    },
+                    {
+                        "name": "glm-4.5-air",
+                        "display_name": "GLM-4.5-Air - 轻量快速",
+                        "input_price_per_1k": 0.001,
+                        "output_price_per_1k": 0.001,
+                        "context_length": 128000,
+                        "currency": "CNY"
                     }
                 ]
             }
@@ -3673,7 +3681,7 @@ class ConfigService:
 
             # 如果没有指定模型，使用默认模型
             if not model_name:
-                model_name = "qwen-turbo"
+                model_name = "glm-4.5-air"
                 logger.info(f"⚠️ 未指定模型，使用默认模型: {model_name}")
 
             logger.info(f"🔍 [DashScope 测试] 使用模型: {model_name}")

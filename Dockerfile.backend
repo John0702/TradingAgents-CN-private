@@ -86,4 +86,6 @@ EXPOSE 8000
 ENV DOCKER_CONTAINER=true
 
 # 启动FastAPI服务
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 使用 run_server.py 确保 nest_asyncio 在 uvicorn 创建事件循环之前应用
+COPY run_server.py ./
+CMD ["python", "run_server.py"]

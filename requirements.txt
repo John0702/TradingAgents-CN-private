@@ -38,6 +38,7 @@ plotly
 psutil
 pymongo  # MongoDB数据库支持，用于Token使用记录存储
 motor>=3.3.0  # 异步MongoDB驱动，用于FastAPI后端
+nest_asyncio>=1.5.0  # 允许嵌套事件循环，解决FastAPI中调用同步代码问题
 markdown>=3.4.0  # Markdown处理，用于报告生成
 pypandoc>=1.11  # 文档格式转换，用于导出报告功能
 python-docx>=0.8.11  # Word文档处理，用于修复文本方向

@@ -368,11 +368,13 @@ def _get_default_provider_by_model(model_name: str) -> str:
 
         # 智谱AI
         'glm-4': 'glm',
+        'glm-4.5-air': 'glm',
+        'glm-4.5-pro': 'glm',
         'glm-3-turbo': 'glm',
         'chatglm3-6b': 'glm'
     }
 
-    provider = model_provider_map.get(model_name, 'qwen')  # 默认使用阿里百炼
+    provider = model_provider_map.get(model_name, 'glm')  # 默认使用智谱AI
     logger.info(f"🔧 使用默认映射: {model_name} -> {provider}")
     return provider
 

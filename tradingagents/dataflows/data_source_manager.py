@@ -12,6 +12,13 @@ import warnings
 import pandas as pd
 import numpy as np
 
+# 🔧 修复：允许在已运行的事件循环中嵌套调用 run_until_complete
+try:
+    import nest_asyncio
+    nest_asyncio.apply()
+except ImportError:
+    pass  # nest_asyncio 未安装时忽略
+
 # 导入日志模块
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
@@ -134,11 +141,11 @@ class DataSourceManager:
                 # 按优先级排序（数字越大优先级越高）
                 enabled_sources.sort(key=lambda x: x.get('priority', 0), reverse=True)
 
-                # 转换为 ChinaDataSource 枚举（使用统一编码）
+                # 转换为 ChinaDataSource 枚举（使用字符串key匹配）
                 source_mapping = {
-                    DataSourceCode.TUSHARE: ChinaDataSource.TUSHARE,
-                    DataSourceCode.AKSHARE: ChinaDataSource.AKSHARE,
-                    DataSourceCode.BAOSTOCK: ChinaDataSource.BAOSTOCK,
+                    "tushare": ChinaDataSource.TUSHARE,
+                    "akshare": ChinaDataSource.AKSHARE,
+                    "baostock": ChinaDataSource.BAOSTOCK,
                 }
 
                 result = []
@@ -1119,6 +1126,9 @@ class DataSourceManager:
 
                 # 数据质量异常时也尝试降级到其他数据源
                 fallback_result = self._try_fallback_sources(symbol, start_date, end_date)
+                # 🔧 修复：处理 tuple 返回值
+                if isinstance(fallback_result, tuple):
+                    fallback_result = fallback_result[0]
                 if fallback_result and "❌" not in fallback_result and "错误" not in fallback_result:
                     logger.info(f"✅ [数据来源: 备用数据源] 降级成功获取数据: {symbol}")
                     return fallback_result
@@ -1138,7 +1148,11 @@ class DataSourceManager:
                             'error': str(e),
                             'event_type': 'data_fetch_exception'
                         }, exc_info=True)
-            return self._try_fallback_sources(symbol, start_date, end_date)
+            fallback_result = self._try_fallback_sources(symbol, start_date, end_date)
+            # 🔧 修复：处理 tuple 返回值
+            if isinstance(fallback_result, tuple):
+                fallback_result = fallback_result[0]
+            return fallback_result
 
     def _get_mongodb_data(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
         """
@@ -2162,8 +2176,13 @@ def get_china_stock_data_unified(symbol: str, start_date: str, end_date: str) ->
     manager = get_data_source_manager()
     logger.info(f"🔍 [股票代码追踪] 调用 manager.get_stock_data，传入参数: symbol='{symbol}', start_date='{start_date}', end_date='{end_date}'")
     result = manager.get_stock_data(symbol, start_date, end_date)
+
+    # 🔧 修复：处理 tuple 返回值（当使用备用数据源时会返回 (result, source) 元组）
+    if isinstance(result, tuple):
+        result = result[0]  # 只取结果字符串
+
     # 分析返回结果的详细信息
-    if result:
+    if result and isinstance(result, str):
         lines = result.split('\n')
         data_lines = [line for line in lines if '2025-' in line and symbol in line]
         logger.info(f"🔍 [股票代码追踪] 返回结果统计: 总行数={len(lines)}, 数据行数={len(data_lines)}, 结果长度={len(result)}字符")
@@ -2171,7 +2190,7 @@ def get_china_stock_data_unified(symbol: str, start_date: str, end_date: str) ->
         if len(data_lines) > 0:
             logger.info(f"🔍 [股票代码追踪] 数据行示例: 第1行='{data_lines[0][:100]}', 最后1行='{data_lines[-1][:100]}'")
     else:
-        logger.info(f"🔍 [股票代码追踪] 返回结果: None")
+        logger.info(f"🔍 [股票代码追踪] 返回结果: {type(result)}")
     return result
 
 
